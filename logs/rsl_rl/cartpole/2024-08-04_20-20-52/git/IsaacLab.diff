@@ -1,0 +1,1741 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   source/extensions/omni.isaac.lab/omni/isaac/lab/utils/assets.py
+	modified:   source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/cartpole.py
+	modified:   source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py
+	modified:   source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/cartpole_env.py
+	modified:   source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/__init__.py
+	modified:   source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py
+	modified:   source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/utils/parse_cfg.py
+	modified:   source/standalone/demos/arms.py
+	modified:   source/standalone/demos/markers.py
+	modified:   source/standalone/environments/random_agent.py
+	modified:   source/standalone/tools/convert_mesh.py
+	modified:   source/standalone/tools/convert_urdf.py
+	modified:   source/standalone/tutorials/00_sim/spawn_prims.py
+	modified:   source/standalone/tutorials/01_assets/run_articulation.py
+	modified:   source/standalone/tutorials/01_assets/run_rigid_object.py
+	modified:   source/standalone/tutorials/02_scene/create_scene.py
+	modified:   source/standalone/tutorials/03_envs/create_cartpole_base_env.py
+	modified:   source/standalone/tutorials/03_envs/create_cube_base_env.py
+	modified:   source/standalone/tutorials/03_envs/create_quadruped_base_env.py
+	modified:   source/standalone/tutorials/03_envs/run_cartpole_rl_env.py
+	modified:   source/standalone/tutorials/04_sensors/add_sensors_on_robot.py
+	modified:   source/standalone/tutorials/04_sensors/run_usd_camera.py
+	modified:   source/standalone/tutorials/05_controllers/run_diff_ik.py
+	modified:   source/standalone/workflows/rl_games/train.py
+	modified:   source/standalone/workflows/sb3/train.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	source/standalone/learn_walk_my/
+	source/standalone/my_project/
+	source/standalone/tutorials/02_scene/test_my.py
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/source/extensions/omni.isaac.lab/omni/isaac/lab/utils/assets.py b/source/extensions/omni.isaac.lab/omni/isaac/lab/utils/assets.py
+index 547fcca0..9844ce6a 100644
+--- a/source/extensions/omni.isaac.lab/omni/isaac/lab/utils/assets.py
++++ b/source/extensions/omni.isaac.lab/omni/isaac/lab/utils/assets.py
+@@ -21,7 +21,9 @@ from typing import Literal
+ import carb
+ import omni.client
+ 
+-NUCLEUS_ASSET_ROOT_DIR = carb.settings.get_settings().get("/persistent/isaac/asset_root/cloud")
++# NUCLEUS_ASSET_ROOT_DIR = carb.settings.get_settings().get("/persistent/isaac/asset_root/cloud")
++# 本地地址如下：
++NUCLEUS_ASSET_ROOT_DIR = "D:/File_Of_XiaoJunJie/Navida/Omniverse/content/isaac-sim-assets-4.0.0/Assets/Isaac/4.0"
+ """Path to the root directory on the Nucleus Server."""
+ 
+ NVIDIA_NUCLEUS_DIR = f"{NUCLEUS_ASSET_ROOT_DIR}/NVIDIA"
+diff --git a/source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/cartpole.py b/source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/cartpole.py
+index 48d428be..61c92239 100644
+--- a/source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/cartpole.py
++++ b/source/extensions/omni.isaac.lab_assets/omni/isaac/lab_assets/cartpole.py
+@@ -17,15 +17,15 @@ from omni.isaac.lab.utils.assets import ISAACLAB_NUCLEUS_DIR
+ 
+ CARTPOLE_CFG = ArticulationCfg(
+     spawn=sim_utils.UsdFileCfg(
+-        usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/Classic/Cartpole/cartpole.usd",
+-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
++        usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/Classic/Cartpole/cartpole.usd", # 要生成的USD文件路径
++        rigid_props=sim_utils.RigidBodyPropertiesCfg( # 关节根部的属性
+             rigid_body_enabled=True,
+             max_linear_velocity=1000.0,
+             max_angular_velocity=1000.0,
+             max_depenetration_velocity=100.0,
+             enable_gyroscopic_forces=True,
+         ),
+-        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
++        articulation_props=sim_utils.ArticulationRootPropertiesCfg( # 所有关节链接的属性
+             enabled_self_collisions=False,
+             solver_position_iteration_count=4,
+             solver_velocity_iteration_count=0,
+@@ -33,10 +33,10 @@ CARTPOLE_CFG = ArticulationCfg(
+             stabilization_threshold=0.001,
+         ),
+     ),
+-    init_state=ArticulationCfg.InitialStateCfg(
++    init_state=ArticulationCfg.InitialStateCfg(  # 定义了关节根部的初始状态以及所有关节的初始状态
+         pos=(0.0, 0.0, 2.0), joint_pos={"slider_to_cart": 0.0, "cart_to_pole": 0.0}
+     ),
+-    actuators={
++    actuators={  # 执行器是关节中的关键组件。
+         "cart_actuator": ImplicitActuatorCfg(
+             joint_names_expr=["slider_to_cart"],
+             effort_limit=400.0,
+diff --git a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py
+index e1328e43..06fecf1f 100644
+--- a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py
++++ b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py
+@@ -18,11 +18,11 @@ from .cartpole_env import CartpoleEnv, CartpoleEnvCfg
+ ##
+ 
+ gym.register(
+-    id="Isaac-Cartpole-Direct-v0",
+-    entry_point="omni.isaac.lab_tasks.direct.cartpole:CartpoleEnv",
++    id="Isaac-Cartpole-Direct-v0", 
++    entry_point="omni.isaac.lab_tasks.direct.cartpole:CartpoleEnv", # 环境类的入口点。
+     disable_env_checker=True,
+     kwargs={
+-        "env_cfg_entry_point": CartpoleEnvCfg,
++        "env_cfg_entry_point": CartpoleEnvCfg, # 指定了环境的默认配置
+         "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
+         "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.CartpolePPORunnerCfg,
+         "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
+diff --git a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/cartpole_env.py b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/cartpole_env.py
+index 44926e95..c389d23d 100644
+--- a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/cartpole_env.py
++++ b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/cartpole_env.py
+@@ -20,9 +20,11 @@ from omni.isaac.lab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_
+ from omni.isaac.lab.utils import configclass
+ from omni.isaac.lab.utils.math import sample_uniform
+ 
++# 相比envs.ManagerBasedRLEnv类，DirectRLEnv类的配置更加灵活，这是替换的一大原因。
++
+ 
+ @configclass
+-class CartpoleEnvCfg(DirectRLEnvCfg):
++class CartpoleEnvCfg(DirectRLEnvCfg):  # 环境配置
+     # env
+     decimation = 2
+     episode_length_s = 5.0
+@@ -40,7 +42,7 @@ class CartpoleEnvCfg(DirectRLEnvCfg):
+     pole_dof_name = "cart_to_pole"
+ 
+     # scene
+-    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
++    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=1024, env_spacing=4.0, replicate_physics=True)
+ 
+     # reset
+     max_cart_pos = 3.0  # the cart is reset if it exceeds that position [m]
+@@ -57,7 +59,7 @@ class CartpoleEnvCfg(DirectRLEnvCfg):
+ class CartpoleEnv(DirectRLEnv):
+     cfg: CartpoleEnvCfg
+ 
+-    def __init__(self, cfg: CartpoleEnvCfg, render_mode: str | None = None, **kwargs):
++    def __init__(self, cfg: CartpoleEnvCfg, render_mode: str | None = None, **kwargs):  # 初始化
+         super().__init__(cfg, render_mode, **kwargs)
+ 
+         self._cart_dof_idx, _ = self.cartpole.find_joints(self.cfg.cart_dof_name)
+@@ -67,7 +69,7 @@ class CartpoleEnv(DirectRLEnv):
+         self.joint_pos = self.cartpole.data.joint_pos
+         self.joint_vel = self.cartpole.data.joint_vel
+ 
+-    def _setup_scene(self):
++    def _setup_scene(self):  # 场景创建
+         self.cartpole = Articulation(self.cfg.robot_cfg)
+         # add ground plane
+         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg())
+@@ -80,13 +82,13 @@ class CartpoleEnv(DirectRLEnv):
+         light_cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
+         light_cfg.func("/World/Light", light_cfg)
+ 
+-    def _pre_physics_step(self, actions: torch.Tensor) -> None:
++    def _pre_physics_step(self, actions: torch.Tensor) -> None:  # 动作：每个RL步骤只调用一次，在采取任何物理步骤之前。
+         self.actions = self.action_scale * actions.clone()
+ 
+-    def _apply_action(self) -> None:
++    def _apply_action(self) -> None: # 动作：每个RL步骤之前调用一次，在采取每个物理步骤之前。
+         self.cartpole.set_joint_effort_target(self.actions, joint_ids=self._cart_dof_idx)
+ 
+-    def _get_observations(self) -> dict:
++    def _get_observations(self) -> dict: # 观测
+         obs = torch.cat(
+             (
+                 self.joint_pos[:, self._pole_dof_idx[0]].unsqueeze(dim=1),
+@@ -99,7 +101,7 @@ class CartpoleEnv(DirectRLEnv):
+         observations = {"policy": obs}
+         return observations
+ 
+-    def _get_rewards(self) -> torch.Tensor:
++    def _get_rewards(self) -> torch.Tensor: # 奖励函数，调用了下方的compute_rewards方法
+         total_reward = compute_rewards(
+             self.cfg.rew_scale_alive,
+             self.cfg.rew_scale_terminated,
+@@ -114,7 +116,7 @@ class CartpoleEnv(DirectRLEnv):
+         )
+         return total_reward
+ 
+-    def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
++    def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]: # 终止条件
+         self.joint_pos = self.cartpole.data.joint_pos
+         self.joint_vel = self.cartpole.data.joint_vel
+ 
+@@ -123,7 +125,7 @@ class CartpoleEnv(DirectRLEnv):
+         out_of_bounds = out_of_bounds | torch.any(torch.abs(self.joint_pos[:, self._pole_dof_idx]) > math.pi / 2, dim=1)
+         return out_of_bounds, time_out
+ 
+-    def _reset_idx(self, env_ids: Sequence[int] | None):
++    def _reset_idx(self, env_ids: Sequence[int] | None): # 重置环境
+         if env_ids is None:
+             env_ids = self.cartpole._ALL_INDICES
+         super()._reset_idx(env_ids)
+@@ -168,3 +170,72 @@ def compute_rewards(
+     rew_pole_vel = rew_scale_pole_vel * torch.sum(torch.abs(pole_vel).unsqueeze(dim=1), dim=-1)
+     total_reward = rew_alive + rew_termination + rew_pole_pos + rew_cart_vel + rew_pole_vel
+     return total_reward
++
++
++
++""" 
++# 以下为教程”域随机化“的代码
++# 感觉上和ManagerBasedRLEnv的配置更为近似
++
++from omni.isaac.lab.managers import EventTermCfg as EventTerm
++import omni.isaac.lab_tasks.manager_based.classic.cartpole.mdp as mdp
++from omni.isaac.lab.managers import SceneEntityCfg
++from omni.isaac.lab.utils.noise import NoiseModelWithAdditiveBiasCfg
++from omni.isaac.lab.utils.noise import GaussianNoiseCfg
++
++# 事件配置
++@configclass
++class EventCfg:
++  robot_physics_material = EventTerm(
++      func=mdp.randomize_rigid_body_material,
++      mode="reset",
++      params={
++          "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
++          "static_friction_range": (0.7, 1.3),
++          "dynamic_friction_range": (1.0, 1.0),
++          "restitution_range": (1.0, 1.0),
++          "num_buckets": 250,
++      },
++  )
++  robot_joint_stiffness_and_damping = EventTerm(
++      func=mdp.randomize_actuator_gains,
++      mode="reset",
++      params={
++          "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
++          "stiffness_distribution_params": (0.75, 1.5),
++          "damping_distribution_params": (0.3, 3.0),
++          "operation": "scale",
++          "distribution": "log_uniform",
++      },
++  )
++  reset_gravity = EventTerm(
++      func=mdp.randomize_physics_scene_gravity,
++      mode="interval",
++      is_global_time=True,
++      interval_range_s=(36.0, 36.0),  # time_s = num_steps * (decimation * dt)
++      params={
++          "gravity_distribution_params": ([0.0, 0.0, 0.0], [0.0, 0.0, 0.4]),
++          "operation": "add",
++          "distribution": "gaussian",
++      },
++  )
++
++# 自创的任务的基本配置类，此处用于示例，添加事件和噪声
++@configclass
++class MyTaskConfig:
++
++    events: EventCfg = EventCfg()
++
++    # at every time-step add gaussian noise + bias. The bias is a gaussian sampled at reset
++    #action_noise_model: NoiseModelWithAdditiveBiasCfg = NoiseModelWithAdditiveBiasCfg(
++    #  noise_cfg=GaussianNoiseCfg(mean=0.0, std=0.05, operation="add"),
++    #  bias_noise_cfg=GaussianNoiseCfg(mean=0.0, std=0.015, operation="abs"),
++    #)
++
++    # at every time-step add gaussian noise + bias. The bias is a gaussian sampled at reset
++    observation_noise_model: NoiseModelWithAdditiveBiasCfg = NoiseModelWithAdditiveBiasCfg(
++      noise_cfg=GaussianNoiseCfg(mean=0.0, std=0.002, operation="add"),
++      bias_noise_cfg=GaussianNoiseCfg(mean=0.0, std=0.0001, operation="abs"),
++    )
++
++    action_noise_model: GaussianNoiseCfg = GaussianNoiseCfg(mean=0.0, std=0.05, operation="add") """
+\ No newline at end of file
+diff --git a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/__init__.py b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/__init__.py
+index 00f21df5..5ffe4043 100644
+--- a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/__init__.py
++++ b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/__init__.py
+@@ -11,20 +11,33 @@ import gymnasium as gym
+ 
+ from . import agents
+ from .cartpole_env_cfg import CartpoleEnvCfg
+-
++# from source.standalone.my_project.H1RL_first.EnvironmentCfg import H1EnvCfg
+ ##
+ # Register Gym environments.
+ ##
+ 
+ gym.register(
+     id="Isaac-Cartpole-v0",
+-    entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",
++    entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",  # 环境类的入口点。
+     disable_env_checker=True,
+     kwargs={
+-        "env_cfg_entry_point": CartpoleEnvCfg,
++        "env_cfg_entry_point": CartpoleEnvCfg, # 指定了环境的默认配置
+         "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
+         "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.CartpolePPORunnerCfg,
+         "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
+         "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
+     },
+ )
++
++# gym.register(
++#     id="Isaac-H1test-v0",
++#     entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",  # 环境类的入口点。
++#     disable_env_checker=True,
++#     kwargs={
++#         "env_cfg_entry_point": H1EnvCfg, # 指定了环境的默认配置
++#         "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
++#         "rsl_rl_cfg_entry_point": agents.rsl_rl_ppo_cfg.CartpolePPORunnerCfg,
++#         "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
++#         "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
++#     },
++# )
+diff --git a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py
+index e3723346..72dc2844 100644
+--- a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py
++++ b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/manager_based/classic/cartpole/cartpole_env_cfg.py
+@@ -26,9 +26,8 @@ from omni.isaac.lab_assets.cartpole import CARTPOLE_CFG  # isort:skip
+ 
+ 
+ ##
+-# Scene definition
+-##
+-
++# Scene definition 原始第一大类：场景
++## 
+ 
+ @configclass
+ class CartpoleSceneCfg(InteractiveSceneCfg):
+@@ -56,18 +55,9 @@ class CartpoleSceneCfg(InteractiveSceneCfg):
+ 
+ 
+ ##
+-# MDP settings
++# Custom action term  原始第二大类：动作
+ ##
+ 
+-
+-@configclass
+-class CommandsCfg:
+-    """Command terms for the MDP."""
+-
+-    # no commands for this MDP
+-    null = mdp.NullCommandCfg()
+-
+-
+ @configclass
+ class ActionsCfg:
+     """Action specifications for the MDP."""
+@@ -75,6 +65,10 @@ class ActionsCfg:
+     joint_effort = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=100.0)
+ 
+ 
++##
++# Custom observation terms  原始第三大类：观测
++##
++
+ @configclass
+ class ObservationsCfg:
+     """Observation specifications for the MDP."""
+@@ -95,6 +89,10 @@ class ObservationsCfg:
+     policy: PolicyCfg = PolicyCfg()
+ 
+ 
++##
++# Event settings  原始第四大类：事件
++##
++
+ @configclass
+ class EventCfg:
+     """Configuration for events."""
+@@ -121,27 +119,31 @@ class EventCfg:
+     )
+ 
+ 
++##
++# 强化学习第一大类：奖励
++##
++
+ @configclass
+ class RewardsCfg:
+     """Reward terms for the MDP."""
+ 
+-    # (1) Constant running reward
++    # (1) Constant running reward  存活奖励：鼓励代理尽可能长时间保持存活状态。
+     alive = RewTerm(func=mdp.is_alive, weight=1.0)
+-    # (2) Failure penalty
++    # (2) Failure penalty  终止奖励：同样惩罚代理的终止。
+     terminating = RewTerm(func=mdp.is_terminated, weight=-2.0)
+-    # (3) Primary task: keep pole upright
++    # (3) Primary task: keep pole upright 杆角度奖励：鼓励代理保持杆在期望的直立位置。
+     pole_pos = RewTerm(
+         func=mdp.joint_pos_target_l2,
+         weight=-1.0,
+         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["cart_to_pole"]), "target": 0.0},
+     )
+-    # (4) Shaping tasks: lower cart velocity
++    # (4) Shaping tasks: lower cart velocity  小车速度奖励：鼓励代理尽可能保持小车速度较小。
+     cart_vel = RewTerm(
+         func=mdp.joint_vel_l1,
+         weight=-0.01,
+         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"])},
+     )
+-    # (5) Shaping tasks: lower pole angular velocity
++    # (5) Shaping tasks: lower pole angular velocity 杆速度奖励：鼓励代理尽可能保持杆速度较小。
+     pole_vel = RewTerm(
+         func=mdp.joint_vel_l1,
+         weight=-0.005,
+@@ -149,19 +151,49 @@ class RewardsCfg:
+     )
+ 
+ 
++##
++# 强化学习第二大类：终止条件
++# 大多数学习任务在有限数量的步骤中进行，我们称之为一个回合。
++# 例如，在 cartpole 任务中，我们希望代理尽可能长时间地保持杆的平衡。
++# 然而，如果代理达到不稳定或不安全状态，我们希望终止回合。
++# 另一方面，如果代理能够长时间保持杆平衡，我们希望终止回合并开始新的回合，以便代理可以学会从不同的起始配置中平衡杆。
++##
++
+ @configclass
+ class TerminationsCfg:
+     """Termination terms for the MDP."""
+ 
+-    # (1) Time out
++    # (1) Time out 回合长度：回合长度大于定义的最大回合长度。
+     time_out = DoneTerm(func=mdp.time_out, time_out=True)
+-    # (2) Cart out of bounds
++    # (2) Cart out of bounds 小车越界：小车走出边界 [-3, 3]。
+     cart_out_of_bounds = DoneTerm(
+         func=mdp.joint_pos_out_of_manual_limit,
+         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"]), "bounds": (-3.0, 3.0)},
+     )
+ 
+ 
++##
++# 强化学习第三大类：命令
++# 对于各种目标条件的任务，指定代理的目标或命令是有用的。
++# 这通过 managers.CommandManager 处理。
++# 命令管理器在每一步中处理重新采样和更新命令。它还可以用作向代理提供命令的观测。
++##
++
++@configclass
++class CommandsCfg:
++    """Command terms for the MDP."""
++
++    # no commands for this MDP
++    null = mdp.NullCommandCfg()
++
++
++##
++# 强化学习第四大类：课程
++# 在训练学习代理时，往往从一个简单的任务开始，并随着代理的训练逐渐增加任务的难度。
++# 这就是课程学习的理念。
++# 在 Isaac Lab 中，我们提供了一个 managers.CurriculumManager 类，可以用来为您的环境定义课程。
++##
++
+ @configclass
+ class CurriculumCfg:
+     """Configuration for the curriculum."""
+@@ -170,10 +202,9 @@ class CurriculumCfg:
+ 
+ 
+ ##
+-# Environment configuration
++# Environment configuration 第五步骤：环境配置，融合前四者
+ ##
+ 
+-
+ @configclass
+ class CartpoleEnvCfg(ManagerBasedRLEnvCfg):
+     """Configuration for the locomotion velocity-tracking environment."""
+diff --git a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/utils/parse_cfg.py b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/utils/parse_cfg.py
+index f2074c97..da6c924b 100644
+--- a/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/utils/parse_cfg.py
++++ b/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/utils/parse_cfg.py
+@@ -19,9 +19,13 @@ from omni.isaac.lab.utils import update_class_from_dict, update_dict
+ 
+ def load_cfg_from_registry(task_name: str, entry_point_key: str) -> dict | ManagerBasedRLEnvCfg:
+     """Load default configuration given its entry point from the gym registry.
++       从gym registry中加载给定入口点的默认配置。
++       D:/File_Of_XiaoJunJie/Navida/Omniverse/library/IsaacLab/source/extensions/omni.isaac.lab_tasks/omni/isaac/lab_tasks/direct/cartpole/__init__.py
+ 
+     This function loads the configuration object from the gym registry for the given task name.
+     It supports both YAML and Python configuration files.
++    此函数用于从gym registry中加载给定任务名称的配置对象。
++    它支持YAML和Python配置文件。
+ 
+     It expects the configuration to be registered in the gym registry as:
+ 
+@@ -51,6 +55,7 @@ def load_cfg_from_registry(task_name: str, entry_point_key: str) -> dict | Manag
+     Raises:
+         ValueError: If the entry point key is not available in the gym registry for the task.
+     """
++
+     # obtain the configuration entry point
+     cfg_entry_point = gym.spec(task_name).kwargs.get(entry_point_key)
+     # check if entry point exists
+diff --git a/source/standalone/demos/arms.py b/source/standalone/demos/arms.py
+index 0fdfd68e..d6ea945f 100644
+--- a/source/standalone/demos/arms.py
++++ b/source/standalone/demos/arms.py
+@@ -56,18 +56,20 @@ from omni.isaac.lab_assets import (
+ 
+ # isort: on
+ 
+-
++# 这段代码的目的是定义一个函数 define_origins，该函数根据给定的环境数量 num_origins 和间距 spacing 来生成一个三维坐标列表。
++# 这些坐标表示场景中各个环境的原点位置。
++# 这些原点被安排在一个网格上，其中每个环境原点在x和y轴上的位置由网格的行和列决定，而z轴的位置始终为0。
+ def define_origins(num_origins: int, spacing: float) -> list[list[float]]:
+     """Defines the origins of the the scene."""
+     # create tensor based on number of environments
+-    env_origins = torch.zeros(num_origins, 3)
++    env_origins = torch.zeros(num_origins, 3)  #本代码中，下方6个物体，每个物体三维xyz坐标
+     # create a grid of origins
+-    num_rows = np.floor(np.sqrt(num_origins))
+-    num_cols = np.ceil(num_origins / num_rows)
++    num_rows = np.floor(np.sqrt(num_origins)) #row行
++    num_cols = np.ceil(num_origins / num_rows) #column列
+     xx, yy = torch.meshgrid(torch.arange(num_rows), torch.arange(num_cols), indexing="xy")
+-    env_origins[:, 0] = spacing * xx.flatten()[:num_origins] - spacing * (num_rows - 1) / 2
+-    env_origins[:, 1] = spacing * yy.flatten()[:num_origins] - spacing * (num_cols - 1) / 2
+-    env_origins[:, 2] = 0.0
++    env_origins[:, 0] = spacing * xx.flatten()[:num_origins] - spacing * (num_rows - 1) / 2 # x坐标计算
++    env_origins[:, 1] = spacing * yy.flatten()[:num_origins] - spacing * (num_cols - 1) / 2 # y坐标计算
++    env_origins[:, 2] = 0.0 # z坐标始终为0
+     # return the origins
+     return env_origins.tolist()
+ 
+@@ -186,6 +188,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
+                 # clear internal buffers
+                 robot.reset()
+             print("[INFO]: Resetting robots state...")
++
+         # apply random actions to the robots
+         for robot in entities.values():
+             # generate random joint positions
+@@ -197,6 +200,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
+             robot.set_joint_position_target(joint_pos_target)
+             # write data to sim
+             robot.write_data_to_sim()
++        
+         # perform step
+         sim.step()
+         # update sim-time
+diff --git a/source/standalone/demos/markers.py b/source/standalone/demos/markers.py
+index ffb08a0a..08a1304e 100644
+--- a/source/standalone/demos/markers.py
++++ b/source/standalone/demos/markers.py
+@@ -44,7 +44,7 @@ def define_markers() -> VisualizationMarkers:
+     """Define markers with various different shapes."""
+     marker_cfg = VisualizationMarkersCfg(
+         prim_path="/Visuals/myMarkers",
+-        markers={
++        markers={  # 这里展示了可以配置的所有不同类型的标记。
+             "frame": sim_utils.UsdFileCfg(
+                 usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/UIElements/frame_prim.usd",
+                 scale=(0.5, 0.5, 0.5),
+@@ -107,6 +107,7 @@ def main():
+     my_visualizer = define_markers()
+ 
+     # define a grid of positions where the markers should be placed
++    # 定义标记应放置的位置网格
+     num_markers_per_type = 5
+     grid_spacing = 2.0
+     # Calculate the half-width and half-height
+@@ -129,13 +130,13 @@ def main():
+     # Now we are ready!
+     print("[INFO]: Setup complete...")
+ 
+-    # Yaw angle
+-    yaw = torch.zeros_like(marker_locations[:, 0])
++    # Yaw angle 或称为偏航角，是指物体绕其垂直轴（通常是Y轴，在航空航天中常称为纵轴）旋转的角度。
++    yaw = torch.zeros_like(marker_locations[:, 0]) 
+     # Simulate physics
+     while simulation_app.is_running():
+         # rotate the markers around the z-axis for visualization
+         marker_orientations = quat_from_angle_axis(yaw, torch.tensor([0.0, 0.0, 1.0]))
+-        # visualize
++        # visualize 该方法接受标记的姿势和要绘制的相应标记原型作为参数。
+         my_visualizer.visualize(marker_locations, marker_orientations, marker_indices=marker_indices)
+         # roll corresponding indices to show how marker prototype can be changed
+         if yaw[0].item() % (0.5 * torch.pi) < 0.01:
+diff --git a/source/standalone/environments/random_agent.py b/source/standalone/environments/random_agent.py
+index 872b2ea9..74e8474c 100644
+--- a/source/standalone/environments/random_agent.py
++++ b/source/standalone/environments/random_agent.py
+@@ -33,9 +33,15 @@ simulation_app = app_launcher.app
+ import gymnasium as gym
+ import torch
+ 
++# 要将所有 omni.isaac.lab_tasks 扩展提供的环境通知 gym 注册表，我们必须在脚本开头导入模块。
++# 这将执行 __init__.py 文件，该文件遍历所有子包并注册它们各自的环境。
+ import omni.isaac.lab_tasks  # noqa: F401
++
+ from omni.isaac.lab_tasks.utils import parse_env_cfg
+ 
++#教程中所写道的两个gym register的地址，用来标识对应的 环境配置类
++# D:\File_Of_XiaoJunJie\Navida\Omniverse\library\IsaacLab\source\extensions\omni.isaac.lab_tasks\omni\isaac\lab_tasks\manager_based\classic\cartpole\__init__.py
++# D:\File_Of_XiaoJunJie\Navida\Omniverse\library\IsaacLab\source\extensions\omni.isaac.lab_tasks\omni\isaac\lab_tasks\direct\cartpole\__init__.py
+ 
+ def main():
+     """Random actions agent with Isaac Lab environment."""
+diff --git a/source/standalone/tools/convert_mesh.py b/source/standalone/tools/convert_mesh.py
+index 5cebf53d..605b123e 100644
+--- a/source/standalone/tools/convert_mesh.py
++++ b/source/standalone/tools/convert_mesh.py
+@@ -110,7 +110,7 @@ def main():
+     print(os.path.dirname(dest_path))
+     print(os.path.basename(dest_path))
+ 
+-    # Mass properties
++    # Mass properties  质量相关
+     if args_cli.mass is not None:
+         mass_props = schemas_cfg.MassPropertiesCfg(mass=args_cli.mass)
+         rigid_props = schemas_cfg.RigidBodyPropertiesCfg()
+@@ -118,10 +118,11 @@ def main():
+         mass_props = None
+         rigid_props = None
+ 
+-    # Collision properties
++    # Collision properties  碰撞相关
+     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=args_cli.collision_approximation != "none")
+ 
+     # Create Mesh converter config
++    # # 这里就是此处转换的核心
+     mesh_converter_cfg = MeshConverterCfg(
+         mass_props=mass_props,
+         rigid_props=rigid_props,
+diff --git a/source/standalone/tools/convert_urdf.py b/source/standalone/tools/convert_urdf.py
+index 6e48cdb6..3e57c18c 100644
+--- a/source/standalone/tools/convert_urdf.py
++++ b/source/standalone/tools/convert_urdf.py
+@@ -86,14 +86,15 @@ def main():
+         dest_path = os.path.abspath(dest_path)
+ 
+     # Create Urdf converter config
++    # 这里就是一切转换的核心
+     urdf_converter_cfg = UrdfConverterCfg(
+         asset_path=urdf_path,
+         usd_dir=os.path.dirname(dest_path),
+         usd_file_name=os.path.basename(dest_path),
+-        fix_base=args_cli.fix_base,
+-        merge_fixed_joints=args_cli.merge_joints,
++        fix_base=args_cli.fix_base,  # fix_base - 是否修正机器人的基座。这取决于您是否拥有浮动基座还是固定基座的机器人。
++        merge_fixed_joints=args_cli.merge_joints, # merge_fixed_joints - 是否合并固定关节。通常情况下，应将其设置为 True 以减少资产复杂性。
+         force_usd_conversion=True,
+-        make_instanceable=args_cli.make_instanceable,
++        make_instanceable=args_cli.make_instanceable, # make_instanceable - 是否创建实例化资产。通常情况下，应该将其设置为 True 。
+     )
+ 
+     # Print info
+@@ -113,7 +114,7 @@ def main():
+     print("-" * 80)
+     print("-" * 80)
+ 
+-    # Determine if there is a GUI to update:
++    # Determine if there is a GUI to update:  GUI(图形用户界面)
+     # acquire settings interface
+     carb_settings_iface = carb.settings.get_settings()
+     # read flag for whether a local GUI is enabled
+diff --git a/source/standalone/tutorials/00_sim/spawn_prims.py b/source/standalone/tutorials/00_sim/spawn_prims.py
+index 75d97f75..d406508e 100644
+--- a/source/standalone/tutorials/00_sim/spawn_prims.py
++++ b/source/standalone/tutorials/00_sim/spawn_prims.py
+@@ -52,7 +52,7 @@ def design_scene():
+ 
+     # create a new xform prim for all objects to be spawned under
+     prim_utils.create_prim("/World/Objects", "Xform")
+-    # spawn a red cone
++    # spawn a red cone cone 圆锥
+     cfg_cone = sim_utils.ConeCfg(
+         radius=0.15,
+         height=0.5,
+diff --git a/source/standalone/tutorials/01_assets/run_articulation.py b/source/standalone/tutorials/01_assets/run_articulation.py
+index 8f140698..3df5ecfb 100644
+--- a/source/standalone/tutorials/01_assets/run_articulation.py
++++ b/source/standalone/tutorials/01_assets/run_articulation.py
+@@ -43,7 +43,7 @@ from omni.isaac.lab.sim import SimulationContext
+ ##
+ # Pre-defined configs
+ ##
+-from omni.isaac.lab_assets import CARTPOLE_CFG  # isort:skip
++from omni.isaac.lab_assets import CARTPOLE_CFG  # isort:skip “车杆“的USD文件，从assets获取
+ 
+ 
+ def design_scene() -> tuple[dict, list[list[float]]]:
+@@ -90,23 +90,30 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
+             count = 0
+             # reset the scene entities
+             # root state
++
+             # we offset the root state by the origin since the states are written in simulation world frame
++            # 由于状态是在仿真世界框架中编写的，因此我们用原点来偏移根状态
+             # if this is not done, then the robots will be spawned at the (0, 0, 0) of the simulation world
++            # 如果不这样做，那么机器人将在模拟世界的（0,0,0）处生成
+             root_state = robot.data.default_root_state.clone()
+             root_state[:, :3] += origins
+             robot.write_root_state_to_sim(root_state)
+-            # set joint positions with some noise
++
++            # set joint positions with some noise   joint_vel：关节速度（Joint Velocity）
+             joint_pos, joint_vel = robot.data.default_joint_pos.clone(), robot.data.default_joint_vel.clone()
+             joint_pos += torch.rand_like(joint_pos) * 0.1
+             robot.write_joint_state_to_sim(joint_pos, joint_vel)
++
+             # clear internal buffers
+             robot.reset()
+             print("[INFO]: Resetting robot state...")
+-        # Apply random action
++
++        # Apply random action，给关节施加动作
+         # -- generate random joint efforts
+         efforts = torch.randn_like(robot.data.joint_pos) * 5.0
+         # -- apply action to the robot
+         robot.set_joint_effort_target(efforts)
++
+         # -- write data to sim
+         robot.write_data_to_sim()
+         # Perform step
+diff --git a/source/standalone/tutorials/01_assets/run_rigid_object.py b/source/standalone/tutorials/01_assets/run_rigid_object.py
+index af0811a9..882f9550 100644
+--- a/source/standalone/tutorials/01_assets/run_rigid_object.py
++++ b/source/standalone/tutorials/01_assets/run_rigid_object.py
+@@ -82,12 +82,15 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
+     """Runs the simulation loop."""
+     # Extract scene entities
+     # note: we only do this here for readability. In general, it is better to access the entities directly from
+-    #   the dictionary. This dictionary is replaced by the InteractiveScene class in the next tutorial.
++    # the dictionary. This dictionary is replaced by the InteractiveScene class in the next tutorial.
++    # 注意：我们在这里这样做只是为了可读性。一般来说，最好直接从字典中访问实体。在下一教程中，此词典将被InteractiveScene类替换。
++
+     cone_object = entities["cone"]
+     # Define simulation stepping
+     sim_dt = sim.get_physics_dt()
+     sim_time = 0.0
+     count = 0
++
+     # Simulate physics
+     while simulation_app.is_running():
+         # reset
+@@ -95,9 +98,10 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
+             # reset counters
+             sim_time = 0.0
+             count = 0
+-            # reset root state
++            # reset root state. 获取生成的刚性物体对象的默认根状态
+             root_state = cone_object.data.default_root_state.clone()
+             # sample a random position on a cylinder around the origins
++            # 对圆柱体上原点周围的随机位置进行采样
+             root_state[:, :3] += origins
+             root_state[:, :3] += math_utils.sample_cylinder(
+                 radius=0.1, h_range=(0.25, 0.5), size=cone_object.num_instances, device=cone_object.device
+@@ -108,7 +112,8 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
+             cone_object.reset()
+             print("----------------------------------------")
+             print("[INFO]: Resetting object state...")
+-        # apply sim data
++
++        # apply sim data  此方法将其他数据，例如外部力，写入模拟缓冲区
+         cone_object.write_data_to_sim()
+         # perform step
+         sim.step()
+diff --git a/source/standalone/tutorials/02_scene/create_scene.py b/source/standalone/tutorials/02_scene/create_scene.py
+index 2d1c8397..865f92f3 100644
+--- a/source/standalone/tutorials/02_scene/create_scene.py
++++ b/source/standalone/tutorials/02_scene/create_scene.py
+@@ -21,6 +21,7 @@ from omni.isaac.lab.app import AppLauncher
+ 
+ # add argparse arguments
+ parser = argparse.ArgumentParser(description="Tutorial on using the interactive scene interface.")
++# 注意，此处添加了一个命令，与之前·不同
+ parser.add_argument("--num_envs", type=int, default=2, help="Number of environments to spawn.")
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+@@ -46,7 +47,7 @@ from omni.isaac.lab.utils import configclass
+ ##
+ from omni.isaac.lab_assets import CARTPOLE_CFG  # isort:skip
+ 
+-
++# 与之前相比，最大的改变就在这个class，替换了之前的design scene
+ @configclass
+ class CartpoleSceneCfg(InteractiveSceneCfg):
+     """Configuration for a cart-pole scene."""
+@@ -60,6 +61,9 @@ class CartpoleSceneCfg(InteractiveSceneCfg):
+     )
+ 
+     # articulation
++    # 相对路径使用“ENV_REGEX_NS”变量来进行指定，这是一个特殊的变量，在场景创建期间会被环境名称替换。
++    # 任何带有“ENV_REGEX_NS”变量的实体的prim路径在每个环境中都会被克隆。
++    # 这个路径会被场景对象替换为“/World/envs/env_{i}”，其中“i”是环境索引。
+     cartpole: ArticulationCfg = CARTPOLE_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+ 
+ 
+@@ -91,6 +95,12 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+             # clear internal buffers
+             scene.reset()
+             print("[INFO]: Resetting robot state...")
++
++
++            #自己添加的用于获取usd文件在云中的位置
++            #print(CARTPOLE_CFG.spawn.usd_path)
++
++
+         # Apply random action
+         # -- generate random joint efforts
+         efforts = torch.randn_like(robot.data.joint_pos) * 5.0
+diff --git a/source/standalone/tutorials/03_envs/create_cartpole_base_env.py b/source/standalone/tutorials/03_envs/create_cartpole_base_env.py
+index c072f90d..bee892b0 100644
+--- a/source/standalone/tutorials/03_envs/create_cartpole_base_env.py
++++ b/source/standalone/tutorials/03_envs/create_cartpole_base_env.py
+@@ -43,14 +43,16 @@ from omni.isaac.lab.utils import configclass
+ 
+ from omni.isaac.lab_tasks.manager_based.classic.cartpole.cartpole_env_cfg import CartpoleSceneCfg
+ 
++# 场景，参考tutorial-interactive-scene文件，即create_scene.py
+ 
++# 动作
+ @configclass
+ class ActionsCfg:
+     """Action specifications for the environment."""
+ 
+     joint_efforts = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=5.0)
+ 
+-
++# 观测
+ @configclass
+ class ObservationsCfg:
+     """Observation specifications for the environment."""
+@@ -70,12 +72,16 @@ class ObservationsCfg:
+     # observation groups
+     policy: PolicyCfg = PolicyCfg()
+ 
+-
++# 事件
++# 三种常用的模式
++#“启动”(startup) - 仅在环境启动时发生的事件。
++#“重置”(reset) - 当环境终止和重置时发生的事件。
++#“间隔”(interval) - 在给定间隔后执行的事件，即每隔一定步数之后。
+ @configclass
+ class EventCfg:
+     """Configuration for events."""
+ 
+-    # on startup
++    # on startup 启动时随机化杆的质量的事件
+     add_pole_mass = EventTerm(
+         func=mdp.randomize_rigid_body_mass,
+         mode="startup",
+@@ -86,7 +92,7 @@ class EventCfg:
+         },
+     )
+ 
+-    # on reset
++    # on reset 每次重置时随机化小车和杆的初始关节状态
+     reset_cart_position = EventTerm(
+         func=mdp.reset_joints_by_offset,
+         mode="reset",
+@@ -108,24 +114,28 @@ class EventCfg:
+     )
+ 
+ 
++# 定义了场景和管理器配置之后，我们现在可以通过 envs.ManagerBasedEnvCfg 类定义环境配置。
++# 这个类接受场景、动作、观测和事件配置。
+ @configclass
+ class CartpoleEnvCfg(ManagerBasedEnvCfg):
+     """Configuration for the cartpole environment."""
+ 
+-    # Scene settings
++    # Scene settings 场景
+     scene = CartpoleSceneCfg(num_envs=1024, env_spacing=2.5)
+     # Basic settings
+-    observations = ObservationsCfg()
+-    actions = ActionsCfg()
+-    events = EventCfg()
++    observations = ObservationsCfg() # 观测
++    actions = ActionsCfg() # 动作
++    events = EventCfg() # 事件
+ 
++    # 除此之外，它还接收了 envs.ManagerBasedEnvCfg.sim ，它定义了仿真参数，如时间步长、重力等。
++    # 这些参数被初始化为默认值，但可以根据需要进行修改。
+     def __post_init__(self):
+         """Post initialization."""
+         # viewer settings
+         self.viewer.eye = [4.5, 0.0, 6.0]
+         self.viewer.lookat = [0.0, 0.0, 2.0]
+         # step settings
+-        self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz
++        self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz  decimation 抽取
+         # simulation settings
+         self.sim.dt = 0.005  # sim step every 5ms: 200Hz
+ 
+@@ -136,11 +146,14 @@ def main():
+     env_cfg = CartpoleEnvCfg()
+     env_cfg.scene.num_envs = args_cli.num_envs
+     # setup base environment
++    # 最后通过env，即ManagerBasedEnv操作所有
+     env = ManagerBasedEnv(cfg=env_cfg)
+ 
+-    # simulate physics
++    # simulate physics，类似于之前的def run_simulator（）函数
+     count = 0
+     while simulation_app.is_running():
++        # 上面需要注意的一个重要事项是整个模拟循环包含在 torch.inference_mode 上下文管理器中。
++        # 这是因为环境在幕后使用PyTorch操作，我们希望确保模拟不会因PyTorch的自动求导引擎的开销而变慢，也不会为模拟操作计算梯度。
+         with torch.inference_mode():
+             # reset
+             if count % 300 == 0:
+diff --git a/source/standalone/tutorials/03_envs/create_cube_base_env.py b/source/standalone/tutorials/03_envs/create_cube_base_env.py
+index 92a47ed6..0d028315 100644
+--- a/source/standalone/tutorials/03_envs/create_cube_base_env.py
++++ b/source/standalone/tutorials/03_envs/create_cube_base_env.py
+@@ -56,11 +56,11 @@ from omni.isaac.lab.scene import InteractiveSceneCfg
+ from omni.isaac.lab.terrains import TerrainImporterCfg
+ from omni.isaac.lab.utils import configclass
+ 
++
+ ##
+-# Custom action term
++# Custom action term  第一大类：动作
+ ##
+-
+-
++# 动作类
+ class CubeActionTerm(ActionTerm):
+     """Simple action term that implements a PD controller to track a target position.
+ 
+@@ -78,14 +78,25 @@ class CubeActionTerm(ActionTerm):
+     track the target position.
+     """
+ 
++    """
++    实现PD控制器以跟踪目标位置。
++    应用于cube数据集资产。它包括两个步骤：
++    1.处理原始动作：通常，这包括对原始动作的任何转换。这是将它们映射到所需空间所必需的。每个环境步骤一次。
++    2.应用已处理的操作：此步骤将已处理的动作应用于资产。每个模拟步骤调用一次。
++    在这种情况下，操作项只是将原始操作应用于cube数据集资产。原始行为是立方体在环境帧中的期望目标位置。
++    预处理步骤只需将原始操作复制到已处理的操作中，不需要额外的处理。
++    然后，通过实现PD控制器，将处理后的操作应用于cube数据集资产跟踪目标位置。
++    """
++
+     _asset: RigidObject
+     """The articulation asset on which the action term is applied."""
+ 
++    # 类的创建
+     def __init__(self, cfg: CubeActionTermCfg, env: ManagerBasedEnv):
+         # call super constructor
+         super().__init__(cfg, env)
+         # create buffers
+-        self._raw_actions = torch.zeros(env.num_envs, 3, device=self.device)
++        self._raw_actions = torch.zeros(env.num_envs, 3, device=self.device) # 矩阵数量为 环境数量 × 三维(x,y,z)
+         self._processed_actions = torch.zeros(env.num_envs, 3, device=self.device)
+         self._vel_command = torch.zeros(self.num_envs, 6, device=self.device)
+         # gains of controller
+@@ -93,7 +104,7 @@ class CubeActionTerm(ActionTerm):
+         self.d_gain = cfg.d_gain
+ 
+     """
+-    Properties.
++    Properties. 属性
+     """
+ 
+     @property
+@@ -109,7 +120,7 @@ class CubeActionTerm(ActionTerm):
+         return self._processed_actions
+ 
+     """
+-    Operations
++    Operations 方法
+     """
+ 
+     def process_actions(self, actions: torch.Tensor):
+@@ -126,7 +137,7 @@ class CubeActionTerm(ActionTerm):
+         self._vel_command[:, :3] = self.p_gain * pos_error + self.d_gain * vel_error
+         self._asset.write_root_velocity_to_sim(self._vel_command)
+ 
+-
++# 动作配置类
+ @configclass
+ class CubeActionTermCfg(ActionTermCfg):
+     """Configuration for the cube action term."""
+@@ -134,29 +145,29 @@ class CubeActionTermCfg(ActionTermCfg):
+     class_type: type = CubeActionTerm
+     """The class corresponding to the action term."""
+ 
++    # 比例增益（p_gain）：p_gain 属性是一个浮点数，默认为 5.0，
++    # 它代表了 PD 控制器中比例（P）部分的增益。比例增益决定了系统对误差的响应速度，但它也可能导致系统不稳定或振荡。
+     p_gain: float = 5.0
+     """Proportional gain of the PD controller."""
++
++    # 微分增益（d_gain）：d_gain 属性同样是一个浮点数，默认为 0.5，
++    # 它代表了 PD 控制器中微分（D）部分的增益。微分增益有助于预测误差的变化趋势，并提前进行校正，从而提高系统的稳定性和响应速度。
+     d_gain: float = 0.5
+     """Derivative gain of the PD controller."""
+ 
++# 动作设置
++@configclass
++class ActionsCfg:
++    """Action specifications for the MDP."""
+ 
+-##
+-# Custom observation term
+-##
+-
++    joint_pos = CubeActionTermCfg(asset_name="cube")
+ 
+-def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+-    """Root linear velocity in the asset's root frame."""
+-    # extract the used quantities (to enable type-hinting)
+-    asset: RigidObject = env.scene[asset_cfg.name]
+-    return asset.data.root_pos_w - env.scene.env_origins
+ 
+ 
+ ##
+-# Scene definition
++# Scene definition 第二大类：场景
+ ##
+ 
+-
+ @configclass
+ class MySceneCfg(InteractiveSceneCfg):
+     """Example scene configuration.
+@@ -187,17 +198,17 @@ class MySceneCfg(InteractiveSceneCfg):
+     )
+ 
+ 
+-##
+-# Environment settings
+-##
+ 
+ 
+-@configclass
+-class ActionsCfg:
+-    """Action specifications for the MDP."""
+-
+-    joint_pos = CubeActionTermCfg(asset_name="cube")
++##
++# Custom observation term 第三大类：观测
++##
+ 
++def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
++    """Root linear velocity in the asset's root frame."""
++    # extract the used quantities (to enable type-hinting)
++    asset: RigidObject = env.scene[asset_cfg.name]
++    return asset.data.root_pos_w - env.scene.env_origins
+ 
+ @configclass
+ class ObservationsCfg:
+@@ -208,6 +219,7 @@ class ObservationsCfg:
+         """Observations for policy group."""
+ 
+         # cube velocity
++        # 调用上面的base_position函数
+         position = ObsTerm(func=base_position, params={"asset_cfg": SceneEntityCfg("cube")})
+ 
+         def __post_init__(self):
+@@ -218,6 +230,12 @@ class ObservationsCfg:
+     policy: PolicyCfg = PolicyCfg()
+ 
+ 
++
++
++##
++# Event settings  第四大类：事件
++##
++
+ @configclass
+ class EventCfg:
+     """Configuration for events."""
+@@ -237,11 +255,12 @@ class EventCfg:
+     )
+ 
+ 
++
++
+ ##
+-# Environment configuration
++# Environment configuration  第五步骤：环境配置，融合前四者
+ ##
+ 
+-
+ @configclass
+ class CubeEnvCfg(ManagerBasedEnvCfg):
+     """Configuration for the locomotion velocity-tracking environment."""
+@@ -262,6 +281,9 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
+         self.sim.physics_material = self.scene.terrain.physics_material
+ 
+ 
++
++
++# 类似于最后一步：run_simulator
+ def main():
+     """Main function."""
+ 
+diff --git a/source/standalone/tutorials/03_envs/create_quadruped_base_env.py b/source/standalone/tutorials/03_envs/create_quadruped_base_env.py
+index 56a13b52..ef549d69 100644
+--- a/source/standalone/tutorials/03_envs/create_quadruped_base_env.py
++++ b/source/standalone/tutorials/03_envs/create_quadruped_base_env.py
+@@ -63,21 +63,62 @@ from omni.isaac.lab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: sk
+ from omni.isaac.lab_assets.anymal import ANYMAL_C_CFG  # isort: skip
+ 
+ 
++
++
++
++
+ ##
+-# Custom observation terms
++# Custom observation terms  第一大类：观测
+ ##
+ 
+-
+ def constant_commands(env: ManagerBasedEnv) -> torch.Tensor:
+     """The generated command from the command generator."""
+     return torch.tensor([[1, 0, 0]], device=env.device).repeat(env.num_envs, 1)
+ 
++@configclass
++class ObservationsCfg:
++    """Observation specifications for the MDP."""
++
++    @configclass
++    class PolicyCfg(ObsGroup):
++        """Observations for policy group."""
++
++        # observation terms (order preserved)
++        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
++        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
++        projected_gravity = ObsTerm(
++            func=mdp.projected_gravity,
++            noise=Unoise(n_min=-0.05, n_max=0.05),
++        )
++        velocity_commands = ObsTerm(func=constant_commands)
++        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
++        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
++        actions = ObsTerm(func=mdp.last_action)
++        height_scan = ObsTerm(
++            func=mdp.height_scan,
++            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
++            noise=Unoise(n_min=-0.1, n_max=0.1),
++            clip=(-1.0, 1.0),
++        )
++
++        def __post_init__(self):
++            self.enable_corruption = True
++            self.concatenate_terms = True
++
++    # observation groups
++    policy: PolicyCfg = PolicyCfg()
++
++
++
++
++
++
++
+ 
+ ##
+-# Scene definition
++# Scene definition  第二大类：场景
+ ##
+ 
+-
+ @configclass
+ class MySceneCfg(InteractiveSceneCfg):
+     """Example scene configuration."""
+@@ -118,11 +159,15 @@ class MySceneCfg(InteractiveSceneCfg):
+     )
+ 
+ 
++
++
++
++
++
+ ##
+-# MDP settings
++# Custom action term  第三大类：动作
+ ##
+ 
+-
+ @configclass
+ class ActionsCfg:
+     """Action specifications for the MDP."""
+@@ -130,39 +175,12 @@ class ActionsCfg:
+     joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
+ 
+ 
+-@configclass
+-class ObservationsCfg:
+-    """Observation specifications for the MDP."""
+-
+-    @configclass
+-    class PolicyCfg(ObsGroup):
+-        """Observations for policy group."""
+-
+-        # observation terms (order preserved)
+-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
+-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+-        projected_gravity = ObsTerm(
+-            func=mdp.projected_gravity,
+-            noise=Unoise(n_min=-0.05, n_max=0.05),
+-        )
+-        velocity_commands = ObsTerm(func=constant_commands)
+-        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+-        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5))
+-        actions = ObsTerm(func=mdp.last_action)
+-        height_scan = ObsTerm(
+-            func=mdp.height_scan,
+-            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+-            noise=Unoise(n_min=-0.1, n_max=0.1),
+-            clip=(-1.0, 1.0),
+-        )
+ 
+-        def __post_init__(self):
+-            self.enable_corruption = True
+-            self.concatenate_terms = True
+ 
+-    # observation groups
+-    policy: PolicyCfg = PolicyCfg()
+ 
++##
++# Event settings  第四大类：事件
++##
+ 
+ @configclass
+ class EventCfg:
+@@ -171,11 +189,14 @@ class EventCfg:
+     reset_scene = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
+ 
+ 
++
++
++
++
+ ##
+-# Environment configuration
++# Environment configuration 第五步骤：环境配置，融合前四者
+ ##
+ 
+-
+ @configclass
+ class QuadrupedEnvCfg(ManagerBasedEnvCfg):
+     """Configuration for the locomotion velocity-tracking environment."""
+@@ -200,6 +221,11 @@ class QuadrupedEnvCfg(ManagerBasedEnvCfg):
+             self.scene.height_scanner.update_period = self.decimation * self.sim.dt  # 50 Hz
+ 
+ 
++
++
++
++
++# 类似于最后一步：run_simulator
+ def main():
+     """Main function."""
+     # setup base environment
+@@ -207,6 +233,7 @@ def main():
+     env = ManagerBasedEnv(cfg=env_cfg)
+ 
+     # load level policy
++    # 注意：.pt 是pyTorch类型文件
+     policy_path = ISAACLAB_NUCLEUS_DIR + "/Policies/ANYmal-C/HeightScan/policy.pt"
+     # check if policy file exists
+     if not check_file_path(policy_path):
+@@ -215,6 +242,7 @@ def main():
+     # jit load the policy
+     policy = torch.jit.load(file_bytes).to(env.device).eval()
+ 
++
+     # simulate physics
+     count = 0
+     obs, _ = env.reset()
+@@ -237,6 +265,10 @@ def main():
+     env.close()
+ 
+ 
++
++
++
++
+ if __name__ == "__main__":
+     # run the main function
+     main()
+diff --git a/source/standalone/tutorials/03_envs/run_cartpole_rl_env.py b/source/standalone/tutorials/03_envs/run_cartpole_rl_env.py
+index 5f9610f8..2e17003d 100644
+--- a/source/standalone/tutorials/03_envs/run_cartpole_rl_env.py
++++ b/source/standalone/tutorials/03_envs/run_cartpole_rl_env.py
+@@ -13,7 +13,7 @@ from omni.isaac.lab.app import AppLauncher
+ 
+ # add argparse arguments
+ parser = argparse.ArgumentParser(description="Tutorial on running the cartpole RL environment.")
+-parser.add_argument("--num_envs", type=int, default=16, help="Number of environments to spawn.")
++parser.add_argument("--num_envs", type=int, default=256, help="Number of environments to spawn.")
+ 
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+@@ -30,9 +30,11 @@ import torch
+ 
+ from omni.isaac.lab.envs import ManagerBasedRLEnv
+ 
++# 注意：这里的场景、事件、观测、动作等的设置，都在CartpoleEnvCfg当中，按住Ctrl键进入其中。
+ from omni.isaac.lab_tasks.manager_based.classic.cartpole.cartpole_env_cfg import CartpoleEnvCfg
+ 
+ 
++# 等于之前文件中的最后一步：run_simulator
+ def main():
+     """Main function."""
+     # create environment configuration
+@@ -43,20 +45,34 @@ def main():
+ 
+     # simulate physics
+     count = 0
++
++    # 自加，测试
++    obs, _ = env.reset()
++    print("测试1:",obs)
++
++
+     while simulation_app.is_running():
+         with torch.inference_mode():
+             # reset
+             if count % 300 == 0:
+                 count = 0
+-                env.reset()
++                # env.reset()
++
++                # 自加，测试
++                obs, _ = env.reset()
++                print("测试2:",obs)
++
++
+                 print("-" * 80)
+                 print("[INFO]: Resetting environment...")
+             # sample random actions
+             joint_efforts = torch.randn_like(env.action_manager.action)
+             # step the environment
++            # 现在 envs.ManagerBasedRLEnv.step() 方法返回额外的信号，例如奖励和终止状态。
++            # 信息字典还保持记录诸如来自各个术语奖励的贡献，每个术语的终止状态，回合长度等的日志。
+             obs, rew, terminated, truncated, info = env.step(joint_efforts)
+             # print current orientation of pole
+-            print("[Env 0]: Pole joint: ", obs["policy"][0][1].item())
++            # print("[Env 0]: Pole joint: ", obs["policy"][0][1].item())
+             # update counter
+             count += 1
+ 
+diff --git a/source/standalone/tutorials/04_sensors/add_sensors_on_robot.py b/source/standalone/tutorials/04_sensors/add_sensors_on_robot.py
+index 304e8c2e..32c03a9f 100644
+--- a/source/standalone/tutorials/04_sensors/add_sensors_on_robot.py
++++ b/source/standalone/tutorials/04_sensors/add_sensors_on_robot.py
+@@ -53,6 +53,7 @@ from omni.isaac.lab.utils import configclass
+ from omni.isaac.lab_assets.anymal import ANYMAL_C_CFG  # isort: skip
+ 
+ 
++# 添加传感器的一大部分就是场景：InteractiveSceneCfg
+ @configclass
+ class SensorsSceneCfg(InteractiveSceneCfg):
+     """Design the scene with sensors on the robot."""
+@@ -69,17 +70,21 @@ class SensorsSceneCfg(InteractiveSceneCfg):
+     robot: ArticulationCfg = ANYMAL_C_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+ 
+     # sensors
++    # 相机
+     camera = CameraCfg(
+-        prim_path="{ENV_REGEX_NS}/Robot/base/front_cam",
+-        update_period=0.1,
++        prim_path="{ENV_REGEX_NS}/Robot/base/front_cam", # 其中 {ENV_REGEX_NS} 是环境命名空间， "Robot" 是机器人名称， "base" 是相机附加到的 prim 的名称， "front_cam" 是与相机传感器关联的 prim 的名称。
++        update_period=0.1, # 更新周期设置为0.1秒，这意味着相机传感器以10Hz 进行更新。
+         height=480,
+         width=640,
+-        data_types=["rgb", "distance_to_image_plane"],
+-        spawn=sim_utils.PinholeCameraCfg(
++        data_types=["rgb", "distance_to_image_plane"], # 要捕获的数据类型。
++        spawn=sim_utils.PinholeCameraCfg( # 要创建的 USD 相机类型
+             focal_length=24.0, focus_distance=400.0, horizontal_aperture=20.955, clipping_range=(0.1, 1.0e5)
+         ),
++        # offset 相机传感器相对于父 prim 的偏移量。
+         offset=CameraCfg.OffsetCfg(pos=(0.510, 0.0, 0.015), rot=(0.5, -0.5, 0.5, -0.5), convention="ros"),
+     )
++
++    # 高度扫描传感器
+     height_scanner = RayCasterCfg(
+         prim_path="{ENV_REGEX_NS}/Robot/base",
+         update_period=0.02,
+@@ -89,6 +94,8 @@ class SensorsSceneCfg(InteractiveSceneCfg):
+         debug_vis=True,
+         mesh_prim_paths=["/World/defaultGroundPlane"],
+     )
++
++    # 接触传感器
+     contact_forces = ContactSensorCfg(
+         prim_path="{ENV_REGEX_NS}/Robot/.*_FOOT", update_period=0.0, history_length=6, debug_vis=True
+     )
+diff --git a/source/standalone/tutorials/04_sensors/run_usd_camera.py b/source/standalone/tutorials/04_sensors/run_usd_camera.py
+index e798c988..c42fd146 100644
+--- a/source/standalone/tutorials/04_sensors/run_usd_camera.py
++++ b/source/standalone/tutorials/04_sensors/run_usd_camera.py
+@@ -78,6 +78,8 @@ from omni.isaac.lab.sensors.camera.utils import create_pointcloud_from_depth
+ from omni.isaac.lab.utils import convert_dict_to_backend
+ 
+ 
++
++# 对于Camera进行配置设置，该函数被应用于design_scene当中
+ def define_sensor() -> Camera:
+     """Defines the camera sensor to add to the scene."""
+     # Setup camera sensor
+@@ -111,6 +113,8 @@ def define_sensor() -> Camera:
+     return camera
+ 
+ 
++
++# 基本的场景生成
+ def design_scene() -> dict:
+     """Design the scene."""
+     # Populate scene
+@@ -169,9 +173,9 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
+     # extract entities for simplified notation
+     camera: Camera = scene_entities["camera"]
+ 
+-    # Create replicator writer
++    # Create replicator writer  写入器
+     output_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "output", "camera")
+-    rep_writer = rep.BasicWriter(
++    rep_writer = rep.BasicWriter( # 该类允许我们以numpy格式保存图像。
+         output_dir=output_dir,
+         frame_padding=0,
+         colorize_instance_id_segmentation=camera.cfg.colorize_instance_id_segmentation,
+@@ -197,6 +201,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
+     camera_index = args_cli.camera_id
+ 
+     # Create the markers for the --draw option outside of is_running() loop
++    # #在is_running（）循环之外为--draw选项创建标记
+     if sim.has_gui() and args_cli.draw:
+         cfg = RAY_CASTER_MARKER_CFG.replace(prim_path="/Visuals/CameraPointCloud")
+         cfg.markers["hit"].radius = 0.002
+@@ -226,16 +231,19 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
+         print("-------------------------------")
+ 
+         # Extract camera data
++        # 提取摄像头数据
+         if args_cli.save:
+             # Save images from camera at camera_index
+             # note: BasicWriter only supports saving data in numpy format, so we need to convert the data to numpy.
+             # tensordict allows easy indexing of tensors in the dictionary
+-            single_cam_data = convert_dict_to_backend(camera.data.output[camera_index], backend="numpy")
++            # tensrodict允许在字典中轻松索引张量
++            single_cam_data = convert_dict_to_backend(camera.data.output[camera_index], backend="numpy") # 变成numpy
+ 
+             # Extract the other information
+             single_cam_info = camera.data.info[camera_index]
+ 
+             # Pack data back into replicator format to save them using its writer
++            # 将数据打包回复制器格式，以便使用其写入器进行保存  ？？？
+             if sim.get_version()[0] == 4:
+                 rep_output = {"annotators": {}}
+                 for key, data, info in zip(single_cam_data.keys(), single_cam_data.values(), single_cam_info.values()):
+@@ -256,6 +264,8 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
+             rep_writer.write(rep_output)
+ 
+         # Draw pointcloud if there is a GUI and --draw has been passed
++        # 如果有GUI并且已经传递了Draw，则绘制点云
++        # 还有另外一个办法可以绘制，具体请看教程
+         if sim.has_gui() and args_cli.draw and "distance_to_image_plane" in camera.data.output.keys():
+             # Derive pointcloud from camera at camera_index
+             pointcloud = create_pointcloud_from_depth(
+diff --git a/source/standalone/tutorials/05_controllers/run_diff_ik.py b/source/standalone/tutorials/05_controllers/run_diff_ik.py
+index 1c621a9a..1a025ab8 100644
+--- a/source/standalone/tutorials/05_controllers/run_diff_ik.py
++++ b/source/standalone/tutorials/05_controllers/run_diff_ik.py
+@@ -56,6 +56,7 @@ from omni.isaac.lab.utils.math import subtract_frame_transforms
+ from omni.isaac.lab_assets import FRANKA_PANDA_HIGH_PD_CFG, UR10_CFG  # isort:skip
+ 
+ 
++# 场景创建
+ @configclass
+ class TableTopSceneCfg(InteractiveSceneCfg):
+     """Configuration for a cart-pole scene."""
+@@ -89,22 +90,47 @@ class TableTopSceneCfg(InteractiveSceneCfg):
+         raise ValueError(f"Robot {args_cli.robot} is not supported. Valid: franka_panda, ur10")
+ 
+ 
++# 使用任务空间控制器
++# 然而，在许多情况下，使用任务空间控制器更直观。
++# 例如，如果我们想对机器人进行远程操作，更容易指定期望的末端执行器姿势，而不是期望的关节位置。
++
++
++# 前情提要：
++#在我们的 API 中，我们使用以下符号来表示框架：
++#模拟世界框架（表示为 w ），这是整个模拟的框架。
++#本地环境框架（表示为 e ），这是本地环境的框架。
++#机器人的基础框架（表示为 b ），这是机器人基座链接的框架。
++#由于资产实例不“认识”本地环境框架，它们返回其状态在模拟世界框架中。因此，我们需要将获取的量转换为本地环境框架。这是通过从获取的量中减去本地环境原点来完成的。
++
++
+ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+     """Runs the simulation loop."""
+     # Extract scene entities
+     # note: we only do this here for readability.
+     robot = scene["robot"]
+ 
++
+     # Create controller
++    # DifferentialIKController 类计算机器人达到期望末端执行器姿势所需的关节位置。
++    # 支持不同类型的逆运动学求解器，包括阻尼最小二乘法和伪逆方法。
++    # 此外，该控制器可以处理相对和绝对姿势命令。
++    # 在本教程中，我们将使用阻尼最小二乘法来计算期望的关节位置。此外，由于我们希望跟踪期望的末端执行器姿势，我们将使用绝对姿势命令模式。
+     diff_ik_cfg = DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls")
+     diff_ik_controller = DifferentialIKController(diff_ik_cfg, num_envs=scene.num_envs, device=sim.device)
+ 
+-    # Markers
++
++
++
++    # Markers，应该是和可视化相关的内容
+     frame_marker_cfg = FRAME_MARKER_CFG.copy()
+     frame_marker_cfg.markers["frame"].scale = (0.1, 0.1, 0.1)
+     ee_marker = VisualizationMarkers(frame_marker_cfg.replace(prim_path="/Visuals/ee_current"))
+     goal_marker = VisualizationMarkers(frame_marker_cfg.replace(prim_path="/Visuals/ee_goal"))
+ 
++
++
++
++    # 我们期望的目标位置
+     # Define goals for the arm
+     ee_goals = [
+         [0.5, 0.5, 0.7, 0.707, 0, 0.707, 0],
+@@ -118,6 +144,11 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+     ik_commands = torch.zeros(scene.num_envs, diff_ik_controller.action_dim, device=robot.device)
+     ik_commands[:] = ee_goals[current_goal_idx]
+ 
++
++
++
++    # IK 控制器的实现是一个仅计算类。
++    # 因此，它期望用户提供有关机器人的必要信息。这包括机器人的关节位置、当前末端执行器姿势和雅可比矩阵。
+     # Specify robot-specific parameters
+     if args_cli.robot == "franka_panda":
+         robot_entity_cfg = SceneEntityCfg("robot", joint_names=["panda_joint.*"], body_names=["panda_hand"])
+@@ -125,23 +156,32 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+         robot_entity_cfg = SceneEntityCfg("robot", joint_names=[".*"], body_names=["ee_link"])
+     else:
+         raise ValueError(f"Robot {args_cli.robot} is not supported. Valid: franka_panda, ur10")
+-    # Resolving the scene entities
++    # Resolving the scene entities 解析场景实体
+     robot_entity_cfg.resolve(scene)
+     # Obtain the frame index of the end-effector
+     # For a fixed base robot, the frame index is one less than the body index. This is because
+     # the root body is not included in the returned Jacobians.
++    # 获取末端执行器的帧索引 
++    # 对于固定底座机器人，框架指数比身体指数低一个。这是因为根体不包含在返回的雅可比矩阵中。
+     if robot.is_fixed_base:
+         ee_jacobi_idx = robot_entity_cfg.body_ids[0] - 1
+     else:
+         ee_jacobi_idx = robot_entity_cfg.body_ids[0]
+ 
++
++
++
++
++
+     # Define simulation stepping
+     sim_dt = sim.get_physics_dt()
+     count = 0
+     # Simulation loop
+     while simulation_app.is_running():
+         # reset
+-        if count % 150 == 0:
++        # 关于此处if和else的由来：
++        # IK 控制器将设置所需命令和计算所需关节位置的操作分开。这样做是为了允许用户以不同的频率运行 IK 控制器而非机器人的控制频率。
++        if count % 150 == 0: # 设置所需命令
+             # reset time
+             count = 0
+             # reset joint state
+@@ -154,10 +194,10 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+             joint_pos_des = joint_pos[:, robot_entity_cfg.joint_ids].clone()
+             # reset controller
+             diff_ik_controller.reset()
+-            diff_ik_controller.set_command(ik_commands)
++            diff_ik_controller.set_command(ik_commands) # set_command() 方法将期望的末端执行器姿势作为单个批量数组输入
+             # change goal
+             current_goal_idx = (current_goal_idx + 1) % len(ee_goals)
+-        else:
++        else: # 计算所需关节位置
+             # obtain quantities from simulation
+             jacobian = robot.root_physx_view.get_jacobians()[:, ee_jacobi_idx, :, robot_entity_cfg.joint_ids]
+             ee_pose_w = robot.data.body_state_w[:, robot_entity_cfg.body_ids[0], 0:7]
+@@ -168,8 +208,14 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
+                 root_pose_w[:, 0:3], root_pose_w[:, 3:7], ee_pose_w[:, 0:3], ee_pose_w[:, 3:7]
+             )
+             # compute the joint commands
++            # 使用 compute() 方法计算所需的关节位置。
+             joint_pos_des = diff_ik_controller.compute(ee_pos_b, ee_quat_b, jacobian, joint_pos)
+ 
++
++
++
++
++
+         # apply actions
+         robot.set_joint_position_target(joint_pos_des, joint_ids=robot_entity_cfg.joint_ids)
+         scene.write_data_to_sim()
+diff --git a/source/standalone/workflows/rl_games/train.py b/source/standalone/workflows/rl_games/train.py
+index e09dbfc9..420db27a 100644
+--- a/source/standalone/workflows/rl_games/train.py
++++ b/source/standalone/workflows/rl_games/train.py
+@@ -7,6 +7,16 @@
+ 
+ """Launch Isaac Sim Simulator first."""
+ 
++
++# 中文教程之：创建直接工作流RL环境。
++# 其py文件位置如下：
++# D:\File_Of_XiaoJunJie\Navida\Omniverse\library\IsaacLab\source\extensions\omni.isaac.lab_tasks\omni\isaac\lab_tasks\direct\cartpole\cartpole_env.py
++# 除了 envs.ManagerBasedRLEnv 类之外，还可以使用配置类来为更模块化的环境提供支持， DirectRLEnv 类允许在环境脚本化中进行更直接的控制。
++# 直接工作流任务实现完全奖励和观察功能的直接任务脚本。
++# 这允许在方法的实现中更多地控制，比如使用Pytorch jit功能，并提供一个更少抽象的框架，更容易找到各种代码片段。
++# 即：相比envs.ManagerBasedRLEnv类，DirectRLEnv类的配置更加灵活，这是替换的一大原因。
++
++
+ import argparse
+ 
+ from omni.isaac.lab.app import AppLauncher
+@@ -68,6 +78,7 @@ def main():
+     env_cfg = parse_env_cfg(
+         args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+     )
++    # 从此处导入配置类，按住Ctrl键，load_cfg_from_registry
+     agent_cfg = load_cfg_from_registry(args_cli.task, "rl_games_cfg_entry_point")
+     # override from command line
+     if args_cli_seed is not None:
+diff --git a/source/standalone/workflows/sb3/train.py b/source/standalone/workflows/sb3/train.py
+index 92e0a4ae..f77aa209 100644
+--- a/source/standalone/workflows/sb3/train.py
++++ b/source/standalone/workflows/sb3/train.py
+@@ -12,6 +12,18 @@ there will be significant overhead in GPU->CPU transfer.
+ 
+ """Launch Isaac Sim Simulator first."""
+ 
++
++# 教程文字
++# 此外，大多数 RL 库都期望其自己的环境接口变体。
++# 例如， Stable-Baselines3 期望环境符合其 VecEnv API ，该 API 期望接收一个 numpy 数组列表而不是一个单一的张量。
++# 类似地， RSL-RL、RL-Games 和 SKRL 也预期另一个接口。
++# 由于没有一种适合所有情况的解决方案，我们不将 envs.ManagerBasedRLEnv 基于任何特定的学习库。
++# 相反，我们实现了包装器来将环境转换为所期望的接口。
++# 这些包装器在 omni.isaac.lab_tasks.utils.wrappers 模块中指定。
++
++# 当前支持的5个强化学习库：RSL-RL、RL-Games、SKRL、Stable-Baselines3、Robomimic
++
++
+ import argparse
+ 
+ from omni.isaac.lab.app import AppLauncher
+@@ -29,6 +41,7 @@ parser.add_argument("--num_envs", type=int, default=None, help="Number of enviro
+ parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+ parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+ parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
++
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+ # parse the arguments
+@@ -58,6 +71,7 @@ from omni.isaac.lab.utils.io import dump_pickle, dump_yaml
+ 
+ import omni.isaac.lab_tasks  # noqa: F401
+ from omni.isaac.lab_tasks.utils import load_cfg_from_registry, parse_env_cfg
++# 本教程的重点部分：包装器wrapper
+ from omni.isaac.lab_tasks.utils.wrappers.sb3 import Sb3VecEnvWrapper, process_sb3_cfg
+ 
+ 
+@@ -67,13 +81,14 @@ def main():
+     env_cfg = parse_env_cfg(
+         args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+     )
++    # 导入环境配置
+     agent_cfg = load_cfg_from_registry(args_cli.task, "sb3_cfg_entry_point")
+ 
+-    # override configuration with command line arguments
++    # override configuration with command line arguments  使用命令行参数覆盖配置
+     if args_cli.seed is not None:
+         agent_cfg["seed"] = args_cli.seed
+ 
+-    # max iterations for training
++    # max iterations for training 训练的最大迭代次数
+     if args_cli.max_iterations:
+         agent_cfg["n_timesteps"] = args_cli.max_iterations * agent_cfg["n_steps"] * env_cfg.scene.num_envs
+ 
+@@ -103,13 +118,17 @@ def main():
+         }
+         print("[INFO] Recording videos during training.")
+         print_dict(video_kwargs, nesting=4)
+-        env = gym.wrappers.RecordVideo(env, **video_kwargs)
++        # RecordVideo: 这个包装器记录环境的视频并将其保存到指定目录。
++        # 这对于在训练过程中可视化 agent 的行为非常有用。
++        env = gym.wrappers.RecordVideo(env, **video_kwargs)    
+     # wrap around environment for stable baselines
++    # Sb3VecEnvWrapper: 这个包装器将环境转换为 Stable-Baselines3 兼容的环境。
+     env = Sb3VecEnvWrapper(env)
+     # set the seed
+     env.seed(seed=agent_cfg["seed"])
+ 
+     if "normalize_input" in agent_cfg:
++        # VecNormalize:这个包装器对环境的观察和奖励进行标准化。
+         env = VecNormalize(
+             env,
+             training=True,
+@@ -121,12 +140,13 @@ def main():
+         )
+ 
+     # create agent from stable baselines
++    # PPO是一种强化学习算法
+     agent = PPO(policy_arch, env, verbose=1, **agent_cfg)
+     # configure the logger
+     new_logger = configure(log_dir, ["stdout", "tensorboard"])
+     agent.set_logger(new_logger)
+ 
+-    # callbacks for agent
++    # callbacks for agent 代理回调
+     checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=log_dir, name_prefix="model", verbose=2)
+     # train the agent
+     agent.learn(total_timesteps=n_timesteps, callback=checkpoint_callback)
+@@ -142,3 +162,18 @@ if __name__ == "__main__":
+     main()
+     # close sim app
+     simulation_app.close()
++
++
++# 无界面执行(没有界面，只有物理模拟)：isaaclab.bat -p source/standalone/workflows/sb3/train.py --task Isaac-Cartpole-v0 --num_envs 64 --headless
++
++# 无界面执行与离屏渲染：isaaclab.bat -p source/standalone/workflows/sb3/train.py --task Isaac-Cartpole-v0 --num_envs 64 --headless --enable_cameras --video
++# 要可视化 agent 的行为，我们传递 --enable_cameras ，这会启用离屏渲染。此外，我们传递标志 --video ，这会记录 agent 在训练期间的行为视频。
++# 视频保存在 logs/sb3/Isaac-Cartpole-v0/<run-dir>/videos 目录中。
++
++# 交互式执行：isaaclab.bat -p source/standalone/workflows/sb3/train.py --task Isaac-Cartpole-v0 --num_envs 64
++
++# 查看日志(监视训练进度)：isaaclab.bat -p -m tensorboard.main --logdir logs/sb3/Isaac-Cartpole-v0
++
++# 播放经过训练的agent：isaaclab.bat -p source/standalone/workflows/sb3/play.py --task Isaac-Cartpole-v0 --num_envs 32 --use_last_checkpoint
++# 上述命令将从 logs/sb3/Isaac-Cartpole-v0 目录加载最新的检查点。
++# 您也可以通过传递 --checkpoint 标志指定特定的检查点。
+\ No newline at end of file
